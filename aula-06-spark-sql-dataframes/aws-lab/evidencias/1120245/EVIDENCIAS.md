@@ -1,155 +1,99 @@
 # Evidências — Lab Aula 06 (Spark SQL / DataFrames na AWS)
 
-> Copie este arquivo para `evidencias/<SEU_RA>/EVIDENCIAS.md` e preencha.
-> Salve os prints na mesma pasta e referencie-os no texto.
-
 ## Identificação
 
-- **Nome:**
-- **RA:**
-- **Branch:** aula-06-aws-SEURA
-- **Data:**
+- **Nome:** Matheus Mantovani
+- **RA:** 1120245
+- **Branch:** aula-06-aws-1120245
+- **Conta AWS:** 864636683316
+- **Região:** us-east-1
+- **Bucket:** lab-aula06-glue-1120245
+- **Glue Job:** job-aula06-topn-clientes
+
+---
+
+## Checklist de conferência
+
+- [x] 1. Identidade AWS ativa (`aws sts get-caller-identity`)
+- [x] 2. `terraform apply` concluído ("Apply complete!" + outputs)
+- [x] 3. Job com estado `SUCCEEDED` (Glue) (+ `JobRunId`)
+- [x] 4. Resultado do TOP-N de clientes (`./ver_resultado.sh`)
+- [x] 5. Interpretação do TOP-N (2–3 frases)
+- [x] 7. Limpeza com `terraform destroy` ("Destroy complete!")
 
 ---
 
 ## 1. Identidade AWS ativa
 
-Saída de `aws sts get-caller-identity` (confirma que as credenciais do Learner
-Lab estão ativas). Cole a saída no bloco de código abaixo (pode mascarar o
-`Account`/`UserId`).
-
-**Comando:**
-```bash
-aws sts get-caller-identity
-```
-
-Cole aqui a saída:
-```text
-(cole a saída aqui)
-```
-
-Print (opcional):
-```
-![identidade AWS](01-identity.png)
+```json
+{
+    "UserId": "AROAYXOECQOVWL7BKJZBB:MasterKey",
+    "Account": "864636683316",
+    "Arn": "arn:aws:sts::864636683316:assumed-role/LabRole/MasterKey"
+}
 ```
 
 ---
 
-## 2. `terraform apply` concluído
+## 2. Terraform apply
 
-Print ou trecho final do `terraform apply` mostrando **"Apply complete!"** e os
-outputs (`bucket_nome`, `glue_job_nome`, `labrole_arn`). **NÃO** mostre credenciais.
-
-**Onde:** `cd aws-lab/infra && terraform apply`
-
-Cole aqui a saída:
-```text
-(cole a saída aqui)
 ```
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
 
-Print:
-```
-![terraform apply](02-apply.png)
+Outputs:
+bucket_nome   = "lab-aula06-glue-1120245"
+glue_job_nome = "job-aula06-topn-clientes"
+labrole_arn   = "arn:aws:iam::864636683316:role/LabRole"
 ```
 
 ---
 
-## 3. Job com estado SUCCEEDED (Glue)
+## 3. Job SUCCEEDED
 
-Print/saída final do `./run_job.sh` mostrando `estado: SUCCEEDED` e o `RUN_ID`
-(`JobRunId`). (Alternativa: print do console **AWS Glue → Jobs → seu job → aba
-Runs** com status **Succeeded**.)
-
-**Onde:** `cd aws-lab/scripts && ./run_job.sh`
-
-Cole aqui a saída:
-```text
-(cole a saída aqui)
 ```
+RUN_ID = jr_6d6ac7c474d2ad0a3d7f2fabac0d4a3dabd14d9a6b90c460d1023b7497e9db5d
 
-Print:
-```
-![job success](03-job-success.png)
+estado: RUNNING
+estado: RUNNING
+estado: RUNNING
+estado: RUNNING
+estado: RUNNING
+estado: SUCCEEDED
+
+Job concluído com SUCESSO.
 ```
 
 ---
 
 ## 4. Resultado do TOP-N de clientes
 
-Saída do `./ver_resultado.sh` (lista do output + conteúdo
-`customer_id,customer_name,total_spend`). Cole no bloco de código abaixo.
-
-**Onde:** `cd aws-lab/scripts && ./ver_resultado.sh`
-
-Cole aqui a saída:
-```text
-(cole a saída aqui)
 ```
-
-Print (opcional):
-```
-![resultado top-n](04-resultado.png)
+customer_id,customer_name,total_spend
+C009,Isabela Nunes,12928.099999999999
+C004,Diego Ferreira,9862.4
+C001,Ana Souza,3612.0900000000006
+C007,Gabriela Lima,2739.0
+C002,Bruno Almeida,2721.4
 ```
 
 ---
 
 ## 5. Interpretação do TOP-N
 
-Cole o **TOP-N** de clientes por gasto e escreva **2–3 frases** interpretando o
-resultado. Relacione com os conceitos de **join**, **groupBy + agregação** e
-**DataFrames**, e com o papel de **driver / executors** no Spark gerenciado.
-
-Top-N:
-```text
-(cole o top-n aqui — customer_id,customer_name,total_spend)
-```
-
-Interpretação:
-
-> (escreva aqui 2–3 frases)
+O resultado mostra os 5 clientes com maior gasto total no dataset. Isabela Nunes
+lidera com R$ 12.928,10 em compras, seguida de Diego Ferreira com R$ 9.862,40 —
+juntos representam mais de 60% do faturamento total do top-5. A diferença expressiva
+entre o 2º e o 3º lugar (Ana Souza, R$ 3.612,09) indica que os dois primeiros
+clientes são outliers de alto valor, um padrão comum em bases de e-commerce onde
+uma minoria concentra grande parte da receita.
 
 ---
 
-## 6. Logs do driver (opcional / bônus)
+## 7. Terraform destroy
 
-Print dos logs do **driver** no **CloudWatch** (grupo `/aws-glue/jobs/output`)
-mostrando o `print(...)` do `dataframe_job.py`.
-
-**Onde:** AWS Glue → Jobs → seu job → aba **Runs** → selecione o run → **Output logs**
-(abre o CloudWatch no grupo `/aws-glue/jobs/output`).
-
-Print:
 ```
-![logs do driver](05-driver-log.png)
+Destroy complete! Resources: 2 destroyed.
 ```
 
----
-
-## 7. Limpeza (`terraform destroy`)
-
-Print/trecho do `terraform destroy` com **"Destroy complete!"** confirmando que os
-recursos foram removidos (guardrail de custo).
-
-**Onde:** `cd aws-lab/infra && terraform destroy`
-
-Cole aqui a saída:
-```text
-(cole a saída aqui)
-```
-
-Print:
-```
-![terraform destroy](06-destroy.png)
-```
-
----
-
-## Checklist de conferência
-
-- [ ] 1. Identidade AWS ativa (`aws sts get-caller-identity`)
-- [ ] 2. `terraform apply` concluído ("Apply complete!" + outputs)
-- [ ] 3. Job com estado `SUCCEEDED` (Glue) (+ `JobRunId`)
-- [ ] 4. Resultado do TOP-N de clientes (`./ver_resultado.sh`)
-- [ ] 5. Interpretação do TOP-N (2–3 frases)
-- [ ] 6. Logs do driver (opcional / bônus)
-- [ ] 7. Limpeza com `terraform destroy` ("Destroy complete!")
+Bucket `lab-aula06-glue-1120245` e Glue Job `job-aula06-topn-clientes` removidos
+com sucesso. Sem recursos residuais na conta.
